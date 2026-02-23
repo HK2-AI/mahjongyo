@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
-import { getBookingPrice, isPeakTime, MembershipTier } from '@/lib/membership'
+import { getBookingPrice, isPeakTime } from '@/lib/membership'
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,8 +47,8 @@ export async function POST(request: NextRequest) {
     const startHour = parseInt(startTime.split(':')[0])
     const endTime = `${String(startHour + 1).padStart(2, '0')}:00`
 
-    // Calculate price based on membership
-    const price = getBookingPrice(user.membership as MembershipTier, date, startTime)
+    // Calculate price (flat pricing)
+    const price = getBookingPrice(date, startTime)
     const isPeak = isPeakTime(date, startTime)
 
     // Format date for display

@@ -36,10 +36,7 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await hash(password, 12)
 
-    // PROMOTION: New users get Pro membership free!
-    const PROMO_MEMBERSHIP = 'pro' // 高手會員
-
-    // Create user with sessionId and promotional membership
+    // Create user with sessionId
     const user = await prisma.user.create({
       data: {
         email: email.toLowerCase(),
@@ -47,7 +44,6 @@ export async function POST(request: NextRequest) {
         name,
         phone: phone || null,
         sessionId: visitorId || null,
-        membership: PROMO_MEMBERSHIP // Limited time promotion!
       }
     })
 

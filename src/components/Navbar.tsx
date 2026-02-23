@@ -19,7 +19,7 @@ export default function Navbar() {
     { href: '/', label: t.nav.home, icon: HomeIcon },
     { href: '/book', label: t.nav.bookCourt, icon: CalendarIcon },
     { href: '/my-bookings', label: t.nav.myBookings, icon: ListIcon, auth: true },
-    { href: '/membership', label: t.nav.membership, icon: MembershipIcon, auth: true },
+    { href: '/membership', label: t.nav.myAccount, icon: MembershipIcon, auth: true },
   ]
 
   const filteredLinks = links.filter(link => !link.auth || session)

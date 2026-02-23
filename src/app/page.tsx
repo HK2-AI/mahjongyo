@@ -261,8 +261,8 @@ export default function Home() {
                     <CheckIcon className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-800">{t.home.membershipBenefits}</h4>
-                    <p className="text-gray-600 text-sm">{t.home.membershipBenefitsDesc}</p>
+                    <h4 className="font-semibold text-gray-800">{t.home.open24hrs}</h4>
+                    <p className="text-gray-600 text-sm">{t.home.ctaSubtitle}</p>
                   </div>
                 </div>
 
@@ -333,15 +333,6 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-100">
-                <div className="flex gap-3">
-                  <span className="text-2xl">💡</span>
-                  <div>
-                    <p className="font-medium text-amber-800">{t.home.proTip}</p>
-                    <p className="text-sm text-amber-700">{t.home.proTipDesc}</p>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>

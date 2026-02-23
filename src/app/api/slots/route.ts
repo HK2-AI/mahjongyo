@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 const OPERATING_HOURS = {
-  start: 8,
-  end: 23  // 11:00 PM
+  start: 0,
+  end: 24  // 24 hours
 }
 
 export async function GET(request: NextRequest) {

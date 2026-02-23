@@ -1,12 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import { formatPrice, getBookingPrice, isPeakTime, getMembershipConfig, MembershipTier } from '@/lib/membership'
+import { formatPrice, getBookingPrice, isPeakTime } from '@/lib/membership'
 import { trackEvent, EventTypes } from '@/lib/tracking'
 
 interface BookingFormProps {
@@ -17,37 +16,10 @@ interface BookingFormProps {
   onError: (message: string) => void
 }
 
-interface UserData {
-  membership: MembershipTier
-  balance: number
-}
-
 export default function BookingForm({ selectedDate, selectedTime, onBookingComplete, onSuccess, onError }: BookingFormProps) {
   const { data: session, status } = useSession()
   const { t, language } = useLanguage()
-  const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [userData, setUserData] = useState<UserData | null>(null)
-  const [fetchingUser, setFetchingUser] = useState(false)
-
-  useEffect(() => {
-    if (session) {
-      fetchUserData()
-    }
-  }, [session])
-
-  const fetchUserData = async () => {
-    setFetchingUser(true)
-    try {
-      const res = await fetch('/api/user')
-      const data = await res.json()
-      setUserData(data.user)
-    } catch (error) {
-      console.error('Error fetching user data:', error)
-    } finally {
-      setFetchingUser(false)
-    }
-  }
 
   const formatTime = (time: string) => {
     const [hours] = time.split(':')
@@ -67,7 +39,7 @@ export default function BookingForm({ selectedDate, selectedTime, onBookingCompl
   }
 
   const handleBooking = async () => {
-    if (!selectedDate || !selectedTime || !userData) return
+    if (!selectedDate || !selectedTime) return
 
     setLoading(true)
 
@@ -103,14 +75,13 @@ export default function BookingForm({ selectedDate, selectedTime, onBookingCompl
     }
   }
 
-  // Calculate price based on membership
-  const bookingPrice = selectedDate && selectedTime && userData
-    ? getBookingPrice(userData.membership, selectedDate, selectedTime)
+  // Calculate price (flat pricing)
+  const bookingPrice = selectedDate && selectedTime
+    ? getBookingPrice(selectedDate, selectedTime)
     : 0
   const isPeak = selectedDate && selectedTime ? isPeakTime(selectedDate, selectedTime) : false
-  const membershipConfig = userData ? getMembershipConfig(userData.membership) : null
 
-  if (status === 'loading' || fetchingUser) {
+  if (status === 'loading') {
     return (
       <div className="card p-6 animate-fade-in">
         <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -200,12 +171,6 @@ export default function BookingForm({ selectedDate, selectedTime, onBookingCompl
           <span className="font-medium text-gray-800">{session.user.name}</span>
         </div>
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">{t.bookingForm.membershipLevel}</span>
-          <span className={`font-medium px-2 py-0.5 rounded-full text-xs bg-${membershipConfig?.color}-100 text-${membershipConfig?.color}-700`}>
-            {language === 'zh-TW' ? membershipConfig?.nameZh : membershipConfig?.name}
-          </span>
-        </div>
-        <div className="flex items-center justify-between text-sm">
           <span className="text-gray-600">{t.bookingForm.priceType}</span>
           <span className={`font-medium ${isPeak ? 'text-orange-600' : 'text-green-600'}`}>
             {isPeak ? t.bookingForm.peak : t.bookingForm.offPeak}
@@ -272,22 +237,6 @@ function LockIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-    </svg>
-  )
-}
-
-function WalletIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18V6a1 1 0 00-1-1H4a1 1 0 00-1 1v4zm0 0v8a1 1 0 001 1h16a1 1 0 001-1v-8M3 10l9-4 9 4m-5 4h.01" />
-    </svg>
-  )
-}
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
     </svg>
   )
 }

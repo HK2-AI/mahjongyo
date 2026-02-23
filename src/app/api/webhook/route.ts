@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
-import { getMembershipBySpending } from '@/lib/membership'
 import Stripe from 'stripe'
 
 export async function POST(request: NextRequest) {
@@ -36,11 +35,10 @@ export async function POST(request: NextRequest) {
       const userId = session.metadata.userId
       const price = parseInt(session.metadata.price || '0')
 
-      // Get user and update spending/membership
+      // Get user and update spending
       const user = await prisma.user.findUnique({ where: { id: userId } })
       if (user) {
         const newTotalSpent = (user.totalSpent || 0) + price
-        const newMembership = getMembershipBySpending(newTotalSpent)
 
         // Update booking status and user spending
         await prisma.$transaction([
@@ -52,7 +50,6 @@ export async function POST(request: NextRequest) {
             where: { id: userId },
             data: {
               totalSpent: newTotalSpent,
-              membership: newMembership
             }
           }),
           prisma.transaction.create({

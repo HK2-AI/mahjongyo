@@ -77,36 +77,6 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
       <div className="max-w-md w-full animate-scale-in">
-        {/* Promotion Banner */}
-        <div className="mb-6 p-4 bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 rounded-2xl text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
-          <div className="relative">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-2xl">🎁</span>
-              <span className="px-2 py-0.5 bg-white/20 rounded-full text-xs font-bold">{t.signup.limitedOffer}</span>
-            </div>
-            <h3 className="text-lg font-bold mb-1">{t.signup.freeUpgrade}</h3>
-            <p className="text-white/90 text-sm">
-              {t.signup.freeUpgradeDesc}
-            </p>
-            <div className="mt-3 flex items-center gap-4 text-xs">
-              <div className="flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                {t.signup.savePerHour}
-              </div>
-              <div className="flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                {t.signup.instantEffect}
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/30 overflow-hidden">

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { getBookingPrice, isPeakTime, MembershipTier, getMembershipBySpending } from '@/lib/membership'
+import { getBookingPrice, isPeakTime } from '@/lib/membership'
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,8 +26,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Date and time are required' }, { status: 400 })
     }
 
-    // Calculate the booking price based on membership
-    const price = getBookingPrice(user.membership as MembershipTier, date, startTime)
+    // Calculate the booking price (flat pricing)
+    const price = getBookingPrice(date, startTime)
     const isPeak = isPeakTime(date, startTime)
 
     // Check if user has sufficient balance
@@ -55,10 +55,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'This slot is already booked' }, { status: 409 })
     }
 
-    // Calculate new total spending and check for membership upgrade
-    const newTotalSpent = (user.totalSpent || 0) + price
-    const newMembership = getMembershipBySpending(newTotalSpent)
-
     // Create booking and deduct balance in a transaction
     const [booking] = await prisma.$transaction([
       prisma.booking.create({
@@ -76,8 +72,7 @@ export async function POST(req: NextRequest) {
         where: { id: user.id },
         data: {
           balance: user.balance - price,
-          totalSpent: newTotalSpent,
-          membership: newMembership,
+          totalSpent: (user.totalSpent || 0) + price,
         },
       }),
       prisma.transaction.create({
@@ -90,10 +85,7 @@ export async function POST(req: NextRequest) {
       }),
     ])
 
-    // Check if membership was upgraded
-    const wasUpgraded = newMembership !== user.membership
-
-    return NextResponse.json({ booking, success: true, membershipUpgraded: wasUpgraded, newMembership })
+    return NextResponse.json({ booking, success: true })
   } catch (error) {
     console.error('Booking error:', error)
     return NextResponse.json({ error: 'Failed to create booking' }, { status: 500 })

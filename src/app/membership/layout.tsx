@@ -1,11 +1,11 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: '會員專區 | 麻雀Party Room',
-  description: '查看會員等級、價格優惠及交易紀錄。消費越多，優惠越大，最高可享 50% 折扣。MJ Party membership benefits and pricing.',
+  title: '我的帳戶 | 麻雀Party Room',
+  description: '查看帳戶餘額及交易紀錄。My Account - view balance and transaction history.',
   openGraph: {
-    title: '會員專區 | 麻雀Party!',
-    description: '會員優惠最高達 50% 折扣',
+    title: '我的帳戶 | 麻雀Party!',
+    description: '帳戶管理與交易紀錄',
   },
 }
 
