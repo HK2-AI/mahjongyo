@@ -52,3 +52,4 @@ src/lib/prisma-production.ts
 src/app/admin/
 src/app/api/admin/
 .claude/settings.local.json
+.env*.local

@@ -18,18 +18,18 @@ export default function Home() {
           <div className="absolute top-1 right-1/3 w-1 h-1 bg-white rounded-full" />
         </div>
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-center gap-4 relative">
-          <span className="text-2xl animate-bounce">🚧</span>
+          <span className="text-2xl animate-bounce">🀄</span>
           <div className="text-center">
-            <span className="font-bold text-lg md:text-xl">COMING SOON</span>
+            <span className="font-bold text-lg md:text-xl">{language === 'zh-TW' ? '新蒲崗五芳街' : 'Ng Fong St, San Po Kong'}</span>
             <span className="mx-2 hidden sm:inline">|</span>
             <span className="text-white/90 hidden sm:inline">
-              {language === 'zh-TW' ? '麻將房裝修中，即將隆重開幕！' : 'Mahjong room under construction, opening soon!'}
+              {language === 'zh-TW' ? '新蒲崗五芳街 ・ 24小時私人麻雀房' : 'Ng Fong Street, San Po Kong · 24-Hour Private Mahjong Room'}
             </span>
             <span className="text-white/90 sm:hidden block text-sm mt-1">
-              {language === 'zh-TW' ? '麻將房裝修中，即將開幕！' : 'Opening soon!'}
+              {language === 'zh-TW' ? '新蒲崗 ・ 24小時麻雀房' : '24-Hour Mahjong Room'}
             </span>
           </div>
-          <span className="text-2xl animate-bounce" style={{ animationDelay: '0.5s' }}>🏗️</span>
+          <span className="text-2xl animate-bounce" style={{ animationDelay: '0.5s' }}>🀄</span>
         </div>
       </div>
 
@@ -47,7 +47,7 @@ export default function Home() {
             <div className="inline-flex items-center gap-2 bg-amber-500/20 backdrop-blur-sm px-4 py-2 rounded-full mb-6 border border-amber-400/30">
               <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
               <span className="text-sm font-medium text-amber-200">
-                {language === 'zh-TW' ? '準備中 ・ 即將開幕' : 'Coming Soon'}
+                {language === 'zh-TW' ? '24小時營業 ・ 現正接受預約' : '24 Hours · Now Accepting Bookings'}
               </span>
             </div>
             <h1 className="text-5xl md:text-7xl font-bold mb-6">
@@ -60,15 +60,18 @@ export default function Home() {
               {t.home.subtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <div className="inline-flex items-center justify-center gap-2 bg-white/20 text-white/80 px-8 py-4 rounded-xl text-lg font-bold cursor-not-allowed">
+              <Link
+                href="/book"
+                className="inline-flex items-center justify-center gap-2 bg-white text-green-700 px-8 py-4 rounded-xl text-lg font-bold hover:bg-green-50 transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105"
+              >
                 <CalendarIcon className="w-5 h-5" />
-                {language === 'zh-TW' ? '即將開放預約' : 'Booking Coming Soon'}
-              </div>
+                {t.home.bookCourt}
+              </Link>
               <Link
                 href="/signup"
                 className="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border-2 border-white/30 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-white/20 transition-all duration-200"
               >
-                {language === 'zh-TW' ? '先註冊帳號' : 'Register First'}
+                {t.nav.signUp}
               </Link>
             </div>
           </div>
@@ -76,15 +79,15 @@ export default function Home() {
           {/* Stats */}
           <div className="mt-16 grid grid-cols-3 gap-8 max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: '0.3s' }}>
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold">13</div>
-              <div className="text-green-200 text-sm">{t.home.dailySlots}</div>
+              <div className="text-3xl md:text-4xl font-bold">24hr</div>
+              <div className="text-green-200 text-sm">{language === 'zh-TW' ? '全日營業' : 'Open 24 Hours'}</div>
             </div>
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-bold">1hr</div>
               <div className="text-green-200 text-sm">{t.home.perSession}</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold">$250</div>
+              <div className="text-3xl md:text-4xl font-bold">$40</div>
               <div className="text-green-200 text-sm">{t.home.perHour}</div>
             </div>
           </div>
@@ -211,11 +214,14 @@ export default function Home() {
 
           {/* Bottom CTA */}
           <div className="mt-16 text-center">
-            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-gray-500 to-gray-400 text-white px-8 py-4 rounded-2xl text-lg font-bold cursor-not-allowed opacity-80">
+            <Link
+              href="/book"
+              className="inline-flex items-center gap-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white px-8 py-4 rounded-2xl text-lg font-bold hover:shadow-xl hover:scale-105 transition-all duration-200"
+            >
               <CalendarIcon className="w-6 h-6" />
-              {language === 'zh-TW' ? '即將開放預約' : 'Booking Opening Soon'}
-              <span className="ml-2 px-3 py-1 bg-white/20 rounded-lg text-sm">COMING SOON</span>
-            </div>
+              {t.home.bookExperience}
+              <span className="ml-2 px-3 py-1 bg-white/20 rounded-lg text-sm">{t.home.fromPrice}</span>
+            </Link>
           </div>
         </div>
       </section>
@@ -283,11 +289,11 @@ export default function Home() {
 
               <div className="mt-10">
                 <Link
-                  href="/signup"
+                  href="/book"
                   className="btn-primary inline-flex items-center gap-2 px-8 py-4 text-lg"
                 >
-                  {language === 'zh-TW' ? '先註冊帳號，開幕即享優惠' : 'Register now for opening benefits'}
-
+                  <CalendarIcon className="w-5 h-5" />
+                  {t.home.bookNow}
                 </Link>
               </div>
             </div>
@@ -308,7 +314,7 @@ export default function Home() {
               <div className="space-y-6">
                 <div className="flex items-center justify-between py-3 border-b border-gray-100">
                   <span className="text-gray-600">{t.home.operatingHours}</span>
-                  <span className="font-semibold text-gray-800">8:00 AM - 11:00 PM</span>
+                  <span className="font-semibold text-gray-800">24 {language === 'zh-TW' ? '小時營業' : 'Hours'}</span>
                 </div>
 
                 <div className="flex items-center justify-between py-3 border-b border-gray-100">
@@ -323,7 +329,7 @@ export default function Home() {
 
                 <div className="flex items-center justify-between py-3">
                   <span className="text-gray-600">{t.home.bookingPrice}</span>
-                  <span className="font-bold text-green-600 text-xl">$250.00/hr</span>
+                  <span className="font-bold text-green-600 text-xl">$40/hr {language === 'zh-TW' ? '起' : 'from'}</span>
                 </div>
               </div>
 
@@ -345,16 +351,16 @@ export default function Home() {
       <section className="py-16 bg-gradient-hero text-white">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            {language === 'zh-TW' ? '麻將房即將開幕！' : 'Opening Soon!'}
+            {t.home.ctaTitle}
           </h2>
           <p className="text-green-100 text-lg mb-8">
-            {language === 'zh-TW' ? '先註冊帳號，開幕第一時間通知您，仲可以享開幕優惠' : 'Register now to be notified on opening day and enjoy launch benefits'}
+            {t.home.ctaSubtitle}
           </p>
           <Link
-            href="/signup"
+            href="/book"
             className="inline-flex items-center gap-2 bg-white text-green-700 px-8 py-4 rounded-xl text-lg font-bold hover:bg-green-50 transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105"
           >
-            {language === 'zh-TW' ? '立即註冊' : 'Register Now'}
+            {t.home.bookNow}
           </Link>
         </div>
       </section>
@@ -389,7 +395,7 @@ export default function Home() {
 
             <div className="bg-gray-100 rounded-2xl overflow-hidden h-[300px]">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1551.6204004974318!2d114.1999206264055!3d22.338670110591707!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x340407b04fb06067%3A0x2f46b1004be35814!2sThe%20Burrow!5e0!3m2!1sen!2shk!4v1770304570416!5m2!1sen!2shk"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3690.8!2d114.196!3d22.339!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x340407b04fb06067%3A0x0!2z5paw6JKy5bSX5LqU6Iqz6KGX!5e0!3m2!1szh-TW!2shk"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}

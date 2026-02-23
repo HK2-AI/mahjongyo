@@ -36,7 +36,7 @@ export const MEMBERSHIPS: MembershipConfig[] = [
   {
     id: 'player',
     name: 'Player',
-    nameZh: '球手',
+    nameZh: '牌友',
     spendingThreshold: 100000, // $1,000 total spending
     peakPrice: 38000, // $380
     offPeakPrice: 29000, // $290
@@ -53,7 +53,7 @@ export const MEMBERSHIPS: MembershipConfig[] = [
     offPeakPrice: 29000, // $290
     color: 'purple',
     description: 'Same great rates as Player',
-    descriptionZh: '與球手相同優惠',
+    descriptionZh: '與牌友相同優惠',
   },
   {
     id: 'master',
