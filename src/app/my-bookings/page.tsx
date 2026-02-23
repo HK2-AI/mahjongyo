@@ -50,24 +50,6 @@ export default function MyBookingsPage() {
     }
   }
 
-  const handleCancel = async (id: string) => {
-    try {
-      const res = await fetch(`/api/bookings/${id}`, { method: 'DELETE' })
-
-      if (res.ok) {
-        const data = await res.json()
-        setBookings(bookings.filter(b => b.id !== id))
-        toast.success(`${t.myBookings.cancelled} - ${t.myBookings.refunded}`)
-      } else {
-        const data = await res.json()
-        toast.error(data.error || t.common.somethingWrong)
-      }
-    } catch (error) {
-      console.error('Error cancelling booking:', error)
-      toast.error(t.common.somethingWrong)
-    }
-  }
-
   const isPastBooking = (date: string, startTime: string) => {
     const now = new Date()
     const bookingDate = new Date(date + 'T' + startTime)
@@ -147,7 +129,6 @@ export default function MyBookingsPage() {
                     <BookingCard
                       key={booking.id}
                       booking={booking}
-                      onCancel={handleCancel}
                       isPast={false}
                       index={index}
                       language={language}
@@ -170,7 +151,6 @@ export default function MyBookingsPage() {
                     <BookingCard
                       key={booking.id}
                       booking={booking}
-                      onCancel={handleCancel}
                       isPast={true}
                       index={index}
                       language={language}
@@ -189,16 +169,13 @@ export default function MyBookingsPage() {
   )
 }
 
-function BookingCard({ booking, onCancel, isPast, index, language, t }: {
+function BookingCard({ booking, isPast, index, language, t }: {
   booking: Booking
-  onCancel: (id: string) => void
   isPast: boolean
   index: number
   language: string
   t: any
 }) {
-  const [confirming, setConfirming] = useState(false)
-
   const formatTime = (time: string) => {
     const [hours] = time.split(':')
     const hour = parseInt(hours)
@@ -247,32 +224,8 @@ function BookingCard({ booking, onCancel, isPast, index, language, t }: {
         <div className="flex items-center gap-3">
           {isPast ? (
             <span className="badge-gray">{t.myBookings.completed}</span>
-          ) : confirming ? (
-            <div className="flex items-center gap-2 animate-fade-in">
-              <span className="text-sm text-gray-500">{t.myBookings.cancelConfirm}</span>
-              <button
-                onClick={() => {
-                  onCancel(booking.id)
-                  setConfirming(false)
-                }}
-                className="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
-              >
-                {t.myBookings.yes}
-              </button>
-              <button
-                onClick={() => setConfirming(false)}
-                className="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300 transition-colors"
-              >
-                {t.myBookings.no}
-              </button>
-            </div>
           ) : (
-            <button
-              onClick={() => setConfirming(true)}
-              className="text-red-500 hover:text-red-600 text-sm font-medium hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
-            >
-              {t.myBookings.cancel}
-            </button>
+            <span className="badge-success">{t.myBookings.paid}</span>
           )}
         </div>
       </div>
