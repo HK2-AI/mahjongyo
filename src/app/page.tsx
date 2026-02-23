@@ -377,10 +377,6 @@ export default function Home() {
                   <span className="w-6 h-6 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">2</span>
                   <span>{t.home.direction2}</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-6 h-6 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">3</span>
-                  <span>{t.home.direction3}</span>
-                </li>
               </ol>
             </div>
 

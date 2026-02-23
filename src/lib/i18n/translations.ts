@@ -53,7 +53,6 @@ export const translations = {
       directions: '點樣去',
       direction1: '鑽石山港鐵站 B 出口，行5分鐘即到',
       direction2: '鄰近 Mikiki 商場，配套齊全',
-      direction3: '樓下24小時有嘢食，叫外賣、宵夜極方便',
       // Feature cards
       internationalStandard: '高級設備',
       proFloor: '最新款 Size 42 電動枱',
@@ -280,7 +279,6 @@ export const translations = {
       directions: 'How to get here',
       direction1: 'Diamond Hill MTR Station Exit B, 5 min walk',
       direction2: 'Near Mikiki shopping centre',
-      direction3: '24-hour food options downstairs - takeout & late night eats',
       // Feature cards
       internationalStandard: 'Premium Equipment',
       proFloor: 'Latest Size 42 auto table',
