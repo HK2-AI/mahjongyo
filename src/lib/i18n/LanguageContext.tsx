@@ -1,35 +1,21 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { translations, Language, TranslationKeys } from './translations'
+import { createContext, useContext, ReactNode } from 'react'
+import { translations, TranslationKeys } from './translations'
 
 interface LanguageContextType {
-  language: Language
-  setLanguage: (lang: Language) => void
+  language: 'zh-TW'
   t: TranslationKeys
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>('zh-TW')
-
-  useEffect(() => {
-    const saved = localStorage.getItem('mjparty_lang') as Language
-    if (saved && translations[saved]) {
-      setLanguageState(saved)
-    }
-  }, [])
-
-  const setLanguage = (lang: Language) => {
-    setLanguageState(lang)
-    localStorage.setItem('mjparty_lang', lang)
-  }
-
+  const language = 'zh-TW' as const
   const t = translations[language]
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, t }}>
       {children}
     </LanguageContext.Provider>
   )

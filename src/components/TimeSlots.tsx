@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import { isPeakTime } from '@/lib/membership'
+import { isPeakTime, getBookingPrice, formatPrice } from '@/lib/membership'
 
 interface TimeSlotsProps {
   selectedDate: string
@@ -123,15 +123,16 @@ export default function TimeSlots({ selectedDate, selectedTime, onTimeSelect }: 
                 )}
               </div>
               {slot.available && (
-                <span className={`text-xs mt-1 ${
+                <div className={`flex items-center gap-2 text-xs mt-1 ${
                   selectedTime === slot.startTime
                     ? 'text-green-100'
                     : isPeak
                     ? 'text-orange-500'
                     : 'text-green-500'
                 }`}>
-                  {isPeak ? t.timeSlots.peak : t.timeSlots.offPeak}
-                </span>
+                  <span>{isPeak ? t.timeSlots.peak : t.timeSlots.offPeak}</span>
+                  <span className="font-semibold">{formatPrice(getBookingPrice(selectedDate, slot.startTime))}</span>
+                </div>
               )}
             </button>
           )

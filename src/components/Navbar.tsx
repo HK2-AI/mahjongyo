@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import LanguageSwitcher from './LanguageSwitcher'
 import { trackEvent, EventTypes } from '@/lib/tracking'
 
 export default function Navbar() {
@@ -73,11 +72,6 @@ export default function Navbar() {
                 </Link>
               )
             })}
-
-            {/* Language Switcher */}
-            <div className="ml-2">
-              <LanguageSwitcher />
-            </div>
 
             {/* Auth Buttons */}
             <div className="ml-2 pl-4 border-l border-gray-200 flex items-center gap-2">
@@ -162,11 +156,6 @@ export default function Navbar() {
                   </Link>
                 )
               })}
-
-              {/* Mobile Language Switcher */}
-              <div className="px-4 py-2">
-                <LanguageSwitcher />
-              </div>
 
               {/* Mobile Auth */}
               <div className="mt-4 pt-4 border-t border-gray-200">

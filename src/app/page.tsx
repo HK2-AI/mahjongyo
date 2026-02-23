@@ -314,7 +314,7 @@ export default function Home() {
               <div className="space-y-6">
                 <div className="flex items-center justify-between py-3 border-b border-gray-100">
                   <span className="text-gray-600">{t.home.operatingHours}</span>
-                  <span className="font-semibold text-gray-800">24 {language === 'zh-TW' ? '小時營業' : 'Hours'}</span>
+                  <span className="font-semibold text-gray-800">24 小時營業</span>
                 </div>
 
                 <div className="flex items-center justify-between py-3 border-b border-gray-100">
@@ -327,9 +327,24 @@ export default function Home() {
                   <span className="font-semibold text-gray-800">1</span>
                 </div>
 
-                <div className="flex items-center justify-between py-3">
-                  <span className="text-gray-600">{t.home.bookingPrice}</span>
-                  <span className="font-bold text-green-600 text-xl">$40/hr {language === 'zh-TW' ? '起' : 'from'}</span>
+                <div className="py-3 border-b border-gray-100">
+                  <div className="flex items-center justify-between mb-1">
+                    <div>
+                      <span className="text-gray-800 font-medium">非繁忙時段</span>
+                      <span className="text-gray-500 text-sm ml-2">星期一至四 6pm 前</span>
+                    </div>
+                    <span className="font-bold text-green-600 text-xl">$40/hr</span>
+                  </div>
+                </div>
+
+                <div className="py-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <div>
+                      <span className="text-gray-800 font-medium">繁忙時段</span>
+                      <span className="text-gray-500 text-sm ml-2">星期一至四 6pm 後、週五至日、公眾假期</span>
+                    </div>
+                    <span className="font-bold text-orange-600 text-xl">$50/hr</span>
+                  </div>
                 </div>
               </div>
 
