@@ -14,6 +14,8 @@ interface Slot {
   startTime: string
   endTime: string
   available: boolean
+  isPast: boolean
+  isBooked: boolean
 }
 
 export default function TimeSlots({ selectedDate, selectedTime, onTimeSelect }: TimeSlotsProps) {
@@ -114,7 +116,9 @@ export default function TimeSlots({ selectedDate, selectedTime, onTimeSelect }: 
                   {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
                 </span>
                 {!slot.available && (
-                  <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full">{t.timeSlots.booked}</span>
+                  <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full">
+                    {slot.isBooked ? t.timeSlots.booked : t.timeSlots.past}
+                  </span>
                 )}
                 {selectedTime === slot.startTime && (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

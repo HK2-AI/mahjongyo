@@ -30,27 +30,23 @@ export async function GET(request: NextRequest) {
 
     const bookedTimes = new Set(bookings.map(b => b.startTime))
 
+    const today = new Date()
+    const slotDate = new Date(date + 'T00:00:00')
+    const isToday =
+      slotDate.getFullYear() === today.getFullYear() &&
+      slotDate.getMonth() === today.getMonth() &&
+      slotDate.getDate() === today.getDate()
+
     const slots = []
     for (let hour = OPERATING_HOURS.start; hour < OPERATING_HOURS.end; hour++) {
       const startTime = `${String(hour).padStart(2, '0')}:00`
       const endTime = `${String(hour + 1).padStart(2, '0')}:00`
 
-      let available = !bookedTimes.has(startTime)
+      const isBooked = bookedTimes.has(startTime)
+      const isPast = isToday && hour <= today.getHours()
+      const available = !isBooked && !isPast
 
-      const today = new Date()
-      const slotDate = new Date(date + 'T00:00:00')
-
-      if (
-        slotDate.getFullYear() === today.getFullYear() &&
-        slotDate.getMonth() === today.getMonth() &&
-        slotDate.getDate() === today.getDate()
-      ) {
-        if (hour <= today.getHours()) {
-          available = false
-        }
-      }
-
-      slots.push({ startTime, endTime, available })
+      slots.push({ startTime, endTime, available, isPast, isBooked })
     }
 
     return NextResponse.json({ slots })

@@ -105,6 +105,7 @@ export const translations = {
       booked: '已預約',
       peak: '繁忙',
       offPeak: '非繁忙',
+      past: '已過',
     },
     // Booking form
     bookingForm: {
@@ -331,6 +332,7 @@ export const translations = {
       booked: 'Booked',
       peak: 'Peak',
       offPeak: 'Off-Peak',
+      past: 'Past',
     },
     // Booking form
     bookingForm: {
