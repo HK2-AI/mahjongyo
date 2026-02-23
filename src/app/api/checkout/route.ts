@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
           price_data: {
             currency: 'hkd',
             product_data: {
-              name: `麻雀Yo! 麻將房預約`,
+              name: `麻雀Party Room 預約`,
               description: `${displayDate} ${startTime}-${endTime} (${isPeak ? '繁忙時段' : '非繁忙時段'})`
             },
             unit_amount: price

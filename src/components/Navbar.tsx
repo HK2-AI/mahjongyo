@@ -42,14 +42,14 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
             <Image
-              src="/images/mahjongyo_logo.png"
-              alt="麻雀Yo"
+              src="/images/mjparty_logo.png"
+              alt="麻雀Party"
               width={40}
               height={40}
               className="rounded-xl"
             />
             <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
-              麻雀Yo!
+              麻雀Party!
             </span>
           </Link>
 

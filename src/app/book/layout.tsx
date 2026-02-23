@@ -1,11 +1,11 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: '預約麻將房 | 麻雀Yo! 麻將房',
-  description: '立即預約麻將房。選擇日期和時間，輕鬆完成預約。會員享受優惠價格。Book your mahjong room.',
+  title: '預約麻雀房 | 麻雀Party Room',
+  description: '立即預約麻雀Party Room。選擇日期和時間，輕鬆完成預約。會員享受優惠價格。Book your mahjong room.',
   openGraph: {
-    title: '預約麻將房 | 麻雀Yo!',
-    description: '立即預約麻將房，會員享受優惠價格',
+    title: '預約麻雀房 | 麻雀Party!',
+    description: '立即預約麻雀Party Room，會員享受優惠價格',
   },
 }
 

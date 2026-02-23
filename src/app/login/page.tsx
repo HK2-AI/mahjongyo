@@ -133,10 +133,10 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/30 overflow-hidden">
-              <Image src="/images/mahjongyo_logo.png" alt="麻雀Yo" width={48} height={48} />
+              <Image src="/images/mjparty_logo.png" alt="麻雀Party" width={48} height={48} />
             </div>
             <span className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
-              麻雀Yo!
+              麻雀Party!
             </span>
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">{t.login.title}</h1>

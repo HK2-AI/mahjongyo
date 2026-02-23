@@ -2,7 +2,7 @@
 import { logEvent } from 'firebase/analytics'
 import { initAnalytics } from './firebase'
 
-const VISITOR_ID_KEY = 'mahjongyo_visitor_id'
+const VISITOR_ID_KEY = 'mjparty_visitor_id'
 
 // Generate a UUID v4
 export function generateVisitorId(): string {

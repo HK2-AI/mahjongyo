@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
           price_data: {
             currency: 'twd',
             product_data: {
-              name: 'MahjongYo Account Top Up',
+              name: 'MJ Party Account Top Up',
               description: description,
             },
             unit_amount: amount,

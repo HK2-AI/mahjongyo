@@ -28,7 +28,7 @@ function SuccessContent() {
       <div className="card p-6 mb-6 text-left">
         <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/30 overflow-hidden">
-            <Image src="/images/mahjongyo_logo.png" alt="麻雀Yo" width={48} height={48} />
+            <Image src="/images/mjparty_logo.png" alt="麻雀Party" width={48} height={48} />
           </div>
           <div>
             <p className="font-bold text-gray-800">{t.bookingSuccess.courtName}</p>
@@ -70,8 +70,8 @@ function SuccessContent() {
 
       <p className="mt-6 text-sm text-gray-500">
         {t.bookingSuccess.questions}{' '}
-        <a href="mailto:info@mahjongyo.com" className="text-green-600 hover:underline">
-          info@mahjongyo.com
+        <a href="mailto:info@mjparty.com" className="text-green-600 hover:underline">
+          info@mjparty.com
         </a>
       </p>
     </div>

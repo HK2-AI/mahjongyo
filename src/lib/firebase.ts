@@ -1,7 +1,7 @@
 import { initializeApp, getApps } from 'firebase/app'
 import { getAnalytics, isSupported, Analytics } from 'firebase/analytics'
 
-// TODO: Replace with MahjongYo Firebase project credentials
+// TODO: Replace with MJ Party Firebase project credentials
 const firebaseConfig = {
   apiKey: "AIzaSyDG5WyCnKBZaVW8WeQ2AHOXdlbxJe_u5IA",
   authDomain: "pickleyo-4d52c.firebaseapp.com",

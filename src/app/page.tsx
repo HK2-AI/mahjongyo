@@ -53,7 +53,7 @@ export default function Home() {
             <h1 className="text-5xl md:text-7xl font-bold mb-6">
               {t.home.title}
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-emerald-200">
-                麻雀Yo!
+                麻雀Party!
               </span>
             </h1>
             <p className="text-xl md:text-2xl text-green-100 mb-10 max-w-2xl mx-auto">
@@ -233,7 +233,7 @@ export default function Home() {
             <div className="relative h-[400px] lg:h-[500px] rounded-3xl overflow-hidden shadow-2xl group">
               <Image
                 src="/images/court.jpeg"
-                alt="MahjongYo Room"
+                alt="MJ Party Room"
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-500"
                 priority
@@ -242,7 +242,7 @@ export default function Home() {
               <div className="absolute bottom-6 left-6 right-6">
                 <div className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full">
                   <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-sm font-medium text-gray-800">麻雀Yo! 麻將房</span>
+                  <span className="text-sm font-medium text-gray-800">麻雀Party! 麻雀Party Room</span>
                 </div>
               </div>
             </div>
@@ -413,17 +413,17 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Image
-              src="/images/mahjongyo_logo.png"
-              alt="麻雀Yo"
+              src="/images/mjparty_logo.png"
+              alt="麻雀Party"
               width={32}
               height={32}
               className="rounded-lg"
             />
-            <span className="text-xl font-bold text-white">麻雀Yo!</span>
+            <span className="text-xl font-bold text-white">麻雀Party!</span>
           </div>
           <p className="text-gray-400 text-sm mb-2">{t.home.address}</p>
           <p className="text-sm">{t.home.footer}</p>
-          <p className="text-sm mt-2">{t.home.footerContact} info@mahjongyo.com</p>
+          <p className="text-sm mt-2">{t.home.footerContact} info@mjparty.com</p>
         </div>
       </footer>
     </div>

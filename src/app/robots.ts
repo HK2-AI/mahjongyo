@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/', '/booking-success'],
     },
-    sitemap: 'https://www.mahjongyo.com/sitemap.xml',
+    sitemap: 'https://www.mjparty.com/sitemap.xml',
   }
 }
