@@ -22,34 +22,75 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { date, startTime } = body
+    const { date, startTimes } = body
 
-    if (!date || !startTime) {
+    if (!date || !startTimes || !Array.isArray(startTimes) || startTimes.length === 0) {
       return NextResponse.json(
-        { error: 'Date and time are required' },
+        { error: 'Date and at least one time slot are required' },
         { status: 400 }
       )
     }
 
-    // Check if slot is available
-    const existingBooking = await prisma.booking.findFirst({
-      where: { date, startTime, status: 'confirmed' }
+    // Sort times for consecutive validation
+    const sorted = [...startTimes].sort()
+
+    // Validate consecutive
+    for (let i = 1; i < sorted.length; i++) {
+      const prevHour = parseInt(sorted[i - 1].split(':')[0])
+      const currHour = parseInt(sorted[i].split(':')[0])
+      if (currHour !== prevHour + 1) {
+        return NextResponse.json(
+          { error: 'Time slots must be consecutive' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Check all slots are available
+    const existingBookings = await prisma.booking.findMany({
+      where: {
+        date,
+        startTime: { in: sorted },
+        status: 'confirmed'
+      }
     })
 
-    if (existingBooking) {
+    if (existingBookings.length > 0) {
       return NextResponse.json(
-        { error: 'This time slot is no longer available' },
+        { error: 'One or more time slots are no longer available' },
         { status: 409 }
       )
     }
 
-    // Calculate end time
-    const startHour = parseInt(startTime.split(':')[0])
-    const endTime = `${String(startHour + 1).padStart(2, '0')}:00`
+    // Build booking data for each slot
+    const bookingDataList = sorted.map(startTime => {
+      const startHour = parseInt(startTime.split(':')[0])
+      const endTime = `${String(startHour + 1).padStart(2, '0')}:00`
+      const price = getBookingPrice(date, startTime)
+      const isPeak = isPeakTime(date, startTime)
+      return { startTime, endTime, price, isPeak }
+    })
 
-    // Calculate price (flat pricing)
-    const price = getBookingPrice(date, startTime)
-    const isPeak = isPeakTime(date, startTime)
+    const totalPrice = bookingDataList.reduce((sum, b) => sum + b.price, 0)
+
+    // Create all pending bookings in a transaction
+    const bookings = await prisma.$transaction(
+      bookingDataList.map(b =>
+        prisma.booking.create({
+          data: {
+            date,
+            startTime: b.startTime,
+            endTime: b.endTime,
+            userId: user.id,
+            status: 'pending',
+            amount: b.price,
+            isPeak: b.isPeak
+          }
+        })
+      )
+    )
+
+    const bookingIds = bookings.map(b => b.id).join(',')
 
     // Format date for display (HK timezone)
     const displayDate = new Date(date + 'T12:00:00Z').toLocaleDateString('zh-TW', {
@@ -59,18 +100,10 @@ export async function POST(request: NextRequest) {
       timeZone: 'Asia/Hong_Kong'
     })
 
-    // Create pending booking
-    const booking = await prisma.booking.create({
-      data: {
-        date,
-        startTime,
-        endTime,
-        userId: user.id,
-        status: 'pending',
-        amount: price,
-        isPeak
-      }
-    })
+    const firstTime = sorted[0]
+    const lastHour = parseInt(sorted[sorted.length - 1].split(':')[0]) + 1
+    const endTimeDisplay = `${String(lastHour).padStart(2, '0')}:00`
+    const numHours = sorted.length
 
     // Create Stripe checkout session
     const checkoutSession = await stripe.checkout.sessions.create({
@@ -81,9 +114,9 @@ export async function POST(request: NextRequest) {
             currency: 'hkd',
             product_data: {
               name: `麻雀Party Room 預約`,
-              description: `${displayDate} ${startTime}-${endTime} (${isPeak ? '繁忙時段' : '非繁忙時段'})`
+              description: `${displayDate} ${firstTime}-${endTimeDisplay} (${numHours}小時)`
             },
-            unit_amount: price
+            unit_amount: totalPrice
           },
           quantity: 1
         }
@@ -92,14 +125,14 @@ export async function POST(request: NextRequest) {
       success_url: `${process.env.NEXTAUTH_URL}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXTAUTH_URL}/book?cancelled=true`,
       metadata: {
-        bookingId: booking.id,
+        bookingIds,
         userId: user.id,
-        price: price.toString()
+        price: totalPrice.toString()
       },
       customer_email: user.email
     })
 
-    return NextResponse.json({ url: checkoutSession.url, bookingId: booking.id })
+    return NextResponse.json({ url: checkoutSession.url, bookingIds })
   } catch (error) {
     console.error('Checkout error:', error)
     return NextResponse.json(

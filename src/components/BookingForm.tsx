@@ -10,13 +10,13 @@ import { trackEvent, EventTypes } from '@/lib/tracking'
 
 interface BookingFormProps {
   selectedDate: string
-  selectedTime: string | null
+  selectedTimes: string[]
   onBookingComplete: () => void
   onSuccess: (message: string) => void
   onError: (message: string) => void
 }
 
-export default function BookingForm({ selectedDate, selectedTime, onBookingComplete, onSuccess, onError }: BookingFormProps) {
+export default function BookingForm({ selectedDate, selectedTimes, onBookingComplete, onSuccess, onError }: BookingFormProps) {
   const { data: session, status } = useSession()
   const { t, language } = useLanguage()
   const [loading, setLoading] = useState(false)
@@ -38,14 +38,29 @@ export default function BookingForm({ selectedDate, selectedTime, onBookingCompl
     })
   }
 
+  const sortedTimes = [...selectedTimes].sort()
+  const numSlots = sortedTimes.length
+  const firstTime = sortedTimes[0]
+  const lastHour = numSlots > 0 ? parseInt(sortedTimes[numSlots - 1].split(':')[0]) + 1 : 0
+  const endTimeStr = numSlots > 0 ? `${String(lastHour).padStart(2, '0')}:00` : ''
+
+  const totalPrice = sortedTimes.reduce(
+    (sum, time) => sum + getBookingPrice(selectedDate, time),
+    0
+  )
+
+  const hasMixedPricing = numSlots > 1 && sortedTimes.some(
+    time => isPeakTime(selectedDate, time) !== isPeakTime(selectedDate, sortedTimes[0])
+  )
+  const allPeak = numSlots > 0 && sortedTimes.every(time => isPeakTime(selectedDate, time))
+
   const handleBooking = async () => {
-    if (!selectedDate || !selectedTime) return
+    if (!selectedDate || selectedTimes.length === 0) return
 
     setLoading(true)
 
-    // Track booking attempt
     trackEvent(EventTypes.BOOKING_CONFIRM, {
-      eventData: { date: selectedDate, time: selectedTime, price: bookingPrice }
+      eventData: { date: selectedDate, times: selectedTimes, price: totalPrice }
     })
 
     try {
@@ -54,7 +69,7 @@ export default function BookingForm({ selectedDate, selectedTime, onBookingCompl
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           date: selectedDate,
-          startTime: selectedTime
+          startTimes: sortedTimes
         })
       })
 
@@ -65,7 +80,6 @@ export default function BookingForm({ selectedDate, selectedTime, onBookingCompl
         throw new Error(data.error || 'Failed to create checkout session')
       }
 
-      // Redirect to Stripe checkout
       if (data.url) {
         window.location.href = data.url
       }
@@ -74,12 +88,6 @@ export default function BookingForm({ selectedDate, selectedTime, onBookingCompl
       setLoading(false)
     }
   }
-
-  // Calculate price (flat pricing)
-  const bookingPrice = selectedDate && selectedTime
-    ? getBookingPrice(selectedDate, selectedTime)
-    : 0
-  const isPeak = selectedDate && selectedTime ? isPeakTime(selectedDate, selectedTime) : false
 
   if (status === 'loading') {
     return (
@@ -129,7 +137,7 @@ export default function BookingForm({ selectedDate, selectedTime, onBookingCompl
     )
   }
 
-  if (!selectedDate || !selectedTime) {
+  if (!selectedDate || selectedTimes.length === 0) {
     return (
       <div className="card p-6 animate-fade-in">
         <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -143,6 +151,10 @@ export default function BookingForm({ selectedDate, selectedTime, onBookingCompl
       </div>
     )
   }
+
+  const durationLabel = numSlots === 1
+    ? `1 ${t.home.hour}`
+    : `${numSlots} ${t.home.hours}`
 
   return (
     <div className="card p-6 animate-scale-in">
@@ -159,7 +171,7 @@ export default function BookingForm({ selectedDate, selectedTime, onBookingCompl
           <div>
             <p className="font-bold text-green-800">{formatDate(selectedDate)}</p>
             <p className="text-green-600">
-              {formatTime(selectedTime)} - {formatTime(`${parseInt(selectedTime.split(':')[0]) + 1}:00`)}
+              {formatTime(firstTime)} - {formatTime(endTimeStr)}
             </p>
           </div>
         </div>
@@ -172,18 +184,20 @@ export default function BookingForm({ selectedDate, selectedTime, onBookingCompl
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-600">{t.bookingForm.priceType}</span>
-          <span className={`font-medium ${isPeak ? 'text-orange-600' : 'text-green-600'}`}>
-            {isPeak ? t.bookingForm.peak : t.bookingForm.offPeak}
+          <span className={`font-medium ${hasMixedPricing ? 'text-gray-600' : allPeak ? 'text-orange-600' : 'text-green-600'}`}>
+            {hasMixedPricing
+              ? `${t.bookingForm.peak} + ${t.bookingForm.offPeak}`
+              : allPeak ? t.bookingForm.peak : t.bookingForm.offPeak}
           </span>
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-600">{t.bookingForm.duration}</span>
-          <span className="font-medium text-gray-800">1 {t.home.hour}</span>
+          <span className="font-medium text-gray-800">{durationLabel}</span>
         </div>
         <div className="border-t border-gray-200 pt-3 mt-3">
           <div className="flex items-center justify-between">
             <span className="font-semibold text-gray-800">{t.bookingForm.total}</span>
-            <span className="text-2xl font-bold text-green-600">{formatPrice(bookingPrice)}</span>
+            <span className="text-2xl font-bold text-green-600">{formatPrice(totalPrice)}</span>
           </div>
         </div>
       </div>
@@ -201,7 +215,7 @@ export default function BookingForm({ selectedDate, selectedTime, onBookingCompl
         ) : (
           <>
             <CreditCardIcon className="w-5 h-5" />
-            {t.bookingForm.payNow} - {formatPrice(bookingPrice)}
+            {t.bookingForm.payNow} - {formatPrice(totalPrice)}
           </>
         )}
       </button>

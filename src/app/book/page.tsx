@@ -28,7 +28,7 @@ function CancelledBanner() {
 
 function BookingContent() {
   const [selectedDate, setSelectedDate] = useState('')
-  const [selectedTime, setSelectedTime] = useState<string | null>(null)
+  const [selectedTimes, setSelectedTimes] = useState<string[]>([])
   const [refreshKey, setRefreshKey] = useState(0)
   const toast = useToast()
   const { t, language } = useLanguage()
@@ -40,17 +40,19 @@ function BookingContent() {
 
   const handleDateSelect = (date: string) => {
     setSelectedDate(date)
-    setSelectedTime(null)
+    setSelectedTimes([])
     trackEvent(EventTypes.BOOKING_DATE_SELECT, { eventData: { date } })
   }
 
-  const handleTimeSelect = (time: string) => {
-    setSelectedTime(time)
-    trackEvent(EventTypes.BOOKING_TIME_SELECT, { eventData: { date: selectedDate, time } })
+  const handleTimesChange = (times: string[]) => {
+    setSelectedTimes(times)
+    if (times.length > 0) {
+      trackEvent(EventTypes.BOOKING_TIME_SELECT, { eventData: { date: selectedDate, times } })
+    }
   }
 
   const handleBookingComplete = () => {
-    setSelectedTime(null)
+    setSelectedTimes([])
     setRefreshKey(prev => prev + 1)
   }
 
@@ -72,6 +74,15 @@ function BookingContent() {
     return `${displayHour}:00 ${ampm}`
   }
 
+  const getTimeRangeDisplay = () => {
+    if (selectedTimes.length === 0) return ''
+    const sorted = [...selectedTimes].sort()
+    const firstTime = sorted[0]
+    const lastHour = parseInt(sorted[sorted.length - 1].split(':')[0]) + 1
+    const endTime = `${String(lastHour).padStart(2, '0')}:00`
+    return `${formatTime(firstTime)} - ${formatTime(endTime)}`
+  }
+
   return (
     <>
       {selectedDate && (
@@ -86,14 +97,14 @@ function BookingContent() {
                 <p className="font-semibold text-green-800">{formatSelectedDate(selectedDate)}</p>
               </div>
             </div>
-            {selectedTime && (
+            {selectedTimes.length > 0 && (
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center">
                   <ClockIcon className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <p className="text-sm text-green-600">{t.book.selectedTime}</p>
-                  <p className="font-semibold text-green-800">{formatTime(selectedTime)}</p>
+                  <p className="font-semibold text-green-800">{getTimeRangeDisplay()}</p>
                 </div>
               </div>
             )}
@@ -113,15 +124,15 @@ function BookingContent() {
           <div key={refreshKey}>
             <TimeSlots
               selectedDate={selectedDate}
-              selectedTime={selectedTime}
-              onTimeSelect={handleTimeSelect}
+              selectedTimes={selectedTimes}
+              onTimesChange={handleTimesChange}
             />
           </div>
 
           <div>
             <BookingForm
               selectedDate={selectedDate}
-              selectedTime={selectedTime}
+              selectedTimes={selectedTimes}
               onBookingComplete={handleBookingComplete}
               onSuccess={toast.success}
               onError={toast.error}

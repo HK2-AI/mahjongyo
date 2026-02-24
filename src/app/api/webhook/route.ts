@@ -29,32 +29,32 @@ export async function POST(request: NextRequest) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
 
-    // Handle booking payment
-    if (session.metadata?.bookingId) {
-      const bookingId = session.metadata.bookingId
-      const userId = session.metadata.userId
-      const price = parseInt(session.metadata.price || '0')
+    const bookingIdsRaw = session.metadata?.bookingIds || session.metadata?.bookingId
+    if (bookingIdsRaw) {
+      const bookingIds = bookingIdsRaw.split(',')
+      const userId = session.metadata?.userId
+      const price = parseInt(session.metadata?.price || '0')
 
-      // Get user and update spending
-      const user = await prisma.user.findUnique({ where: { id: userId } })
+      const user = userId ? await prisma.user.findUnique({ where: { id: userId } }) : null
       if (user) {
         const newTotalSpent = (user.totalSpent || 0) + price
 
-        // Update booking status and user spending
         await prisma.$transaction([
-          prisma.booking.update({
-            where: { id: bookingId },
-            data: { status: 'confirmed' }
-          }),
+          ...bookingIds.map(id =>
+            prisma.booking.update({
+              where: { id },
+              data: { status: 'confirmed' }
+            })
+          ),
           prisma.user.update({
-            where: { id: userId },
+            where: { id: userId! },
             data: {
               totalSpent: newTotalSpent,
             }
           }),
           prisma.transaction.create({
             data: {
-              userId: userId,
+              userId: userId!,
               type: 'booking',
               amount: -price,
               description: `Booking payment`,
@@ -63,11 +63,14 @@ export async function POST(request: NextRequest) {
           })
         ])
       } else {
-        // Just update booking if user not found
-        await prisma.booking.update({
-          where: { id: bookingId },
-          data: { status: 'confirmed' }
-        })
+        await prisma.$transaction(
+          bookingIds.map(id =>
+            prisma.booking.update({
+              where: { id },
+              data: { status: 'confirmed' }
+            })
+          )
+        )
       }
     }
   }
@@ -75,13 +78,16 @@ export async function POST(request: NextRequest) {
   if (event.type === 'checkout.session.expired') {
     const session = event.data.object as Stripe.Checkout.Session
 
-    if (session.metadata?.bookingId) {
-      // Delete pending booking if payment expired
-      await prisma.booking.delete({
-        where: { id: session.metadata.bookingId }
-      }).catch(() => {
-        // Booking might have been already deleted
-      })
+    const bookingIdsRaw = session.metadata?.bookingIds || session.metadata?.bookingId
+    if (bookingIdsRaw) {
+      const bookingIds = bookingIdsRaw.split(',')
+      await Promise.all(
+        bookingIds.map(id =>
+          prisma.booking.delete({ where: { id } }).catch(() => {
+            // Booking might have been already deleted
+          })
+        )
+      )
     }
   }
 
