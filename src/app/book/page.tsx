@@ -97,18 +97,6 @@ function BookingContent() {
     }
   }
 
-  const handleDay1TimesChange = (times: string[]) => {
-    setSelectedTimes(times)
-    // If 23:00 was deselected, exit cross-midnight mode
-    if (!times.includes('23:00') && nextDate) {
-      setNextDate('')
-      setNextDateTimes([])
-    }
-    if (times.length > 0) {
-      trackEvent(EventTypes.BOOKING_TIME_SELECT, { eventData: { date: selectedDate, times } })
-    }
-  }
-
   const handleBookingComplete = () => {
     setSelectedTimes([])
     setNextDate('')
@@ -206,11 +194,15 @@ function BookingContent() {
           <div key={refreshKey}>
             {nextDate && (
               <div className="mb-4">
-                <TimeSlots
-                  selectedDate={selectedDate}
-                  selectedTimes={selectedTimes}
-                  onTimesChange={handleDay1TimesChange}
-                  label={formatShortDate(selectedDate)}
+                <Day1Summary
+                  date={formatShortDate(selectedDate)}
+                  times={selectedTimes}
+                  formatTime={formatTime}
+                  onCancel={() => {
+                    setNextDate('')
+                    setNextDateTimes([])
+                  }}
+                  t={t}
                 />
               </div>
             )}
@@ -309,6 +301,46 @@ function CalendarIcon({ className }: { className?: string }) {
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
     </svg>
+  )
+}
+
+function Day1Summary({ date, times, formatTime, onCancel, t }: {
+  date: string
+  times: string[]
+  formatTime: (time: string) => string
+  onCancel: () => void
+  t: Record<string, any>
+}) {
+  const sorted = [...times].sort()
+  const first = sorted[0]
+  const lastHour = parseInt(sorted[sorted.length - 1].split(':')[0]) + 1
+  const end = `${String(lastHour).padStart(2, '0')}:00`
+
+  return (
+    <div className="card p-4 bg-green-50 border border-green-200">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+            <CalendarIcon className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <p className="text-xs text-green-600">{date}</p>
+            <p className="font-semibold text-green-800 text-sm">
+              {formatTime(first)} - {formatTime(end)} ({sorted.length}{t.home.hour})
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={onCancel}
+          className="text-green-600 hover:text-red-500 transition-colors p-1"
+          title={t.common.cancel}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
   )
 }
 
