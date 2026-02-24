@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin } from '@/lib/admin'
 
 export async function POST(request: NextRequest) {
   try {
@@ -68,6 +69,9 @@ export async function POST(request: NextRequest) {
 
 // Get events for analysis (admin use)
 export async function GET(request: NextRequest) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   const searchParams = request.nextUrl.searchParams
   const sessionId = searchParams.get('sessionId')
   const eventType = searchParams.get('eventType')

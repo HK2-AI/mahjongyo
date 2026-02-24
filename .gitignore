@@ -47,9 +47,6 @@ next-env.d.ts
 coverage
 .env.vercel
 
-# Local admin tools - DO NOT deploy to production
 src/lib/prisma-production.ts
-src/app/admin/
-src/app/api/admin/
 .claude/settings.local.json
 .env*.local
