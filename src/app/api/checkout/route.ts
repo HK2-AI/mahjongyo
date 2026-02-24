@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { date, startTimes } = body
+    const { date, startTimes, nextDate, nextDateStartTimes } = body
 
     if (!date || !startTimes || !Array.isArray(startTimes) || startTimes.length === 0) {
       return NextResponse.json(
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     // Sort times for consecutive validation
     const sorted = [...startTimes].sort()
 
-    // Validate consecutive
+    // Validate Day 1 consecutive
     for (let i = 1; i < sorted.length; i++) {
       const prevHour = parseInt(sorted[i - 1].split(':')[0])
       const currHour = parseInt(sorted[i].split(':')[0])
@@ -46,7 +46,54 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check all slots are available
+    // Cross-midnight validation
+    const hasCrossMidnight = nextDate && nextDateStartTimes && Array.isArray(nextDateStartTimes) && nextDateStartTimes.length > 0
+    let sortedNextTimes: string[] = []
+
+    if (hasCrossMidnight) {
+      // Validate nextDate is exactly the day after date
+      const d1 = new Date(date + 'T00:00:00')
+      const d2 = new Date(nextDate + 'T00:00:00')
+      const diffMs = d2.getTime() - d1.getTime()
+      if (diffMs !== 24 * 60 * 60 * 1000) {
+        return NextResponse.json(
+          { error: 'Next date must be the day after the booking date' },
+          { status: 400 }
+        )
+      }
+
+      // Day 1 must end with 23:00
+      if (sorted[sorted.length - 1] !== '23:00') {
+        return NextResponse.json(
+          { error: 'Cross-midnight booking requires 23:00 on the first day' },
+          { status: 400 }
+        )
+      }
+
+      sortedNextTimes = [...nextDateStartTimes].sort()
+
+      // Day 2 must start at 00:00
+      if (sortedNextTimes[0] !== '00:00') {
+        return NextResponse.json(
+          { error: 'Cross-midnight booking must start at 00:00 on the next day' },
+          { status: 400 }
+        )
+      }
+
+      // Day 2 times must be consecutive
+      for (let i = 1; i < sortedNextTimes.length; i++) {
+        const prevHour = parseInt(sortedNextTimes[i - 1].split(':')[0])
+        const currHour = parseInt(sortedNextTimes[i].split(':')[0])
+        if (currHour !== prevHour + 1) {
+          return NextResponse.json(
+            { error: 'Next day time slots must be consecutive' },
+            { status: 400 }
+          )
+        }
+      }
+    }
+
+    // Check all Day 1 slots are available
     const existingBookings = await prisma.booking.findMany({
       where: {
         date,
@@ -62,14 +109,43 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Build booking data for each slot
+    // Check Day 2 slots availability if cross-midnight
+    if (hasCrossMidnight) {
+      const existingNextBookings = await prisma.booking.findMany({
+        where: {
+          date: nextDate,
+          startTime: { in: sortedNextTimes },
+          status: 'confirmed'
+        }
+      })
+
+      if (existingNextBookings.length > 0) {
+        return NextResponse.json(
+          { error: 'One or more time slots on the next day are no longer available' },
+          { status: 409 }
+        )
+      }
+    }
+
+    // Build booking data for Day 1
     const bookingDataList = sorted.map(startTime => {
       const startHour = parseInt(startTime.split(':')[0])
       const endTime = `${String(startHour + 1).padStart(2, '0')}:00`
       const price = getBookingPrice(date, startTime)
       const isPeak = isPeakTime(date, startTime)
-      return { startTime, endTime, price, isPeak }
+      return { date, startTime, endTime, price, isPeak }
     })
+
+    // Build booking data for Day 2
+    if (hasCrossMidnight) {
+      sortedNextTimes.forEach(startTime => {
+        const startHour = parseInt(startTime.split(':')[0])
+        const endTime = `${String(startHour + 1).padStart(2, '0')}:00`
+        const price = getBookingPrice(nextDate, startTime)
+        const isPeak = isPeakTime(nextDate, startTime)
+        bookingDataList.push({ date: nextDate, startTime, endTime, price, isPeak })
+      })
+    }
 
     const totalPrice = bookingDataList.reduce((sum, b) => sum + b.price, 0)
 
@@ -78,7 +154,7 @@ export async function POST(request: NextRequest) {
       bookingDataList.map(b =>
         prisma.booking.create({
           data: {
-            date,
+            date: b.date,
             startTime: b.startTime,
             endTime: b.endTime,
             userId: user.id,
@@ -101,9 +177,22 @@ export async function POST(request: NextRequest) {
     })
 
     const firstTime = sorted[0]
-    const lastHour = parseInt(sorted[sorted.length - 1].split(':')[0]) + 1
+    const allSortedTimes = hasCrossMidnight ? [...sorted, ...sortedNextTimes] : sorted
+    const lastSortedTimes = hasCrossMidnight ? sortedNextTimes : sorted
+    const lastHour = parseInt(lastSortedTimes[lastSortedTimes.length - 1].split(':')[0]) + 1
     const endTimeDisplay = `${String(lastHour).padStart(2, '0')}:00`
-    const numHours = sorted.length
+    const numHours = allSortedTimes.length
+
+    let description = `${displayDate} ${firstTime}-${endTimeDisplay} (${numHours}小時)`
+    if (hasCrossMidnight) {
+      const displayNextDate = new Date(nextDate + 'T12:00:00Z').toLocaleDateString('zh-TW', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        timeZone: 'Asia/Hong_Kong'
+      })
+      description = `${displayDate} ${firstTime} - ${displayNextDate} ${endTimeDisplay} (${numHours}小時)`
+    }
 
     // Create Stripe checkout session
     const checkoutSession = await stripe.checkout.sessions.create({
@@ -114,7 +203,7 @@ export async function POST(request: NextRequest) {
             currency: 'hkd',
             product_data: {
               name: `麻雀Party Room 預約`,
-              description: `${displayDate} ${firstTime}-${endTimeDisplay} (${numHours}小時)`
+              description
             },
             unit_amount: totalPrice
           },

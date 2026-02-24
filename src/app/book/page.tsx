@@ -26,16 +26,31 @@ function CancelledBanner() {
   )
 }
 
+function isNextDay(date1: string, date2: string): boolean {
+  const d1 = new Date(date1 + 'T00:00:00')
+  const d2 = new Date(date2 + 'T00:00:00')
+  const diff = d2.getTime() - d1.getTime()
+  return diff === 24 * 60 * 60 * 1000
+}
+
 function BookingContent() {
   const searchParams = useSearchParams()
   const initialDate = searchParams.get('date') || ''
   const initialTimes = searchParams.get('times')?.split(',').filter(Boolean) || []
+  const initialNextDate = searchParams.get('nextDate') || ''
+  const initialNextDateTimes = searchParams.get('nextDateTimes')?.split(',').filter(Boolean) || []
 
   const [selectedDate, setSelectedDate] = useState(initialDate)
   const [selectedTimes, setSelectedTimes] = useState<string[]>(initialTimes)
+  const [nextDate, setNextDate] = useState(initialNextDate)
+  const [nextDateTimes, setNextDateTimes] = useState<string[]>(initialNextDateTimes)
   const [refreshKey, setRefreshKey] = useState(0)
   const toast = useToast()
   const { t, language } = useLanguage()
+
+  const isCrossMidnight = nextDate !== '' && nextDateTimes.length > 0
+  // When nextDate is set (even with 0 times selected yet), show nextDate slots
+  const activeDate = nextDate || selectedDate
 
   // Track booking page start
   useEffect(() => {
@@ -43,13 +58,52 @@ function BookingContent() {
   }, [])
 
   const handleDateSelect = (date: string) => {
+    // If Day 1 has 23:00 selected and user clicks the next day → enter cross-midnight mode
+    if (
+      selectedDate &&
+      selectedTimes.includes('23:00') &&
+      isNextDay(selectedDate, date)
+    ) {
+      setNextDate(date)
+      // Don't clear selectedTimes — keep Day 1 selections
+      trackEvent(EventTypes.BOOKING_DATE_SELECT, { eventData: { date, crossMidnight: true } })
+      return
+    }
+
+    // Normal date change: reset everything
     setSelectedDate(date)
     setSelectedTimes([])
+    setNextDate('')
+    setNextDateTimes([])
     trackEvent(EventTypes.BOOKING_DATE_SELECT, { eventData: { date } })
   }
 
   const handleTimesChange = (times: string[]) => {
+    if (isCrossMidnight || nextDate) {
+      // We're viewing the next-date TimeSlots — update nextDateTimes
+      setNextDateTimes(times)
+      if (times.length > 0) {
+        trackEvent(EventTypes.BOOKING_TIME_SELECT, { eventData: { date: nextDate, times } })
+      }
+      // If all next-date times deselected, exit cross-midnight mode
+      if (times.length === 0) {
+        setNextDate('')
+      }
+    } else {
+      setSelectedTimes(times)
+      if (times.length > 0) {
+        trackEvent(EventTypes.BOOKING_TIME_SELECT, { eventData: { date: selectedDate, times } })
+      }
+    }
+  }
+
+  const handleDay1TimesChange = (times: string[]) => {
     setSelectedTimes(times)
+    // If 23:00 was deselected, exit cross-midnight mode
+    if (!times.includes('23:00') && nextDate) {
+      setNextDate('')
+      setNextDateTimes([])
+    }
     if (times.length > 0) {
       trackEvent(EventTypes.BOOKING_TIME_SELECT, { eventData: { date: selectedDate, times } })
     }
@@ -57,6 +111,8 @@ function BookingContent() {
 
   const handleBookingComplete = () => {
     setSelectedTimes([])
+    setNextDate('')
+    setNextDateTimes([])
     setRefreshKey(prev => prev + 1)
   }
 
@@ -66,6 +122,15 @@ function BookingContent() {
     return date.toLocaleDateString(language === 'zh-TW' ? 'zh-TW' : 'en-US', {
       weekday: 'long',
       month: 'long',
+      day: 'numeric'
+    })
+  }
+
+  const formatShortDate = (dateStr: string) => {
+    if (!dateStr) return ''
+    const date = new Date(dateStr + 'T00:00:00')
+    return date.toLocaleDateString(language === 'zh-TW' ? 'zh-TW' : 'en-US', {
+      month: 'short',
       day: 'numeric'
     })
   }
@@ -82,6 +147,14 @@ function BookingContent() {
     if (selectedTimes.length === 0) return ''
     const sorted = [...selectedTimes].sort()
     const firstTime = sorted[0]
+
+    if (isCrossMidnight) {
+      const sortedNext = [...nextDateTimes].sort()
+      const lastNextHour = parseInt(sortedNext[sortedNext.length - 1].split(':')[0]) + 1
+      const endTime = `${String(lastNextHour).padStart(2, '0')}:00`
+      return `${formatTime(firstTime)} - ${formatTime(endTime)} +1`
+    }
+
     const lastHour = parseInt(sorted[sorted.length - 1].split(':')[0]) + 1
     const endTime = `${String(lastHour).padStart(2, '0')}:00`
     return `${formatTime(firstTime)} - ${formatTime(endTime)}`
@@ -98,10 +171,14 @@ function BookingContent() {
               </div>
               <div>
                 <p className="text-sm text-green-600">{t.book.selectedDate}</p>
-                <p className="font-semibold text-green-800">{formatSelectedDate(selectedDate)}</p>
+                <p className="font-semibold text-green-800">
+                  {isCrossMidnight
+                    ? `${formatShortDate(selectedDate)} - ${formatShortDate(nextDate)}`
+                    : formatSelectedDate(selectedDate)}
+                </p>
               </div>
             </div>
-            {selectedTimes.length > 0 && (
+            {(selectedTimes.length > 0 || isCrossMidnight) && (
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center">
                   <ClockIcon className="w-5 h-5 text-white" />
@@ -122,14 +199,27 @@ function BookingContent() {
             <Calendar
               selectedDate={selectedDate}
               onDateSelect={handleDateSelect}
+              nextDate={nextDate}
             />
           </div>
 
           <div key={refreshKey}>
+            {nextDate && (
+              <div className="mb-4">
+                <TimeSlots
+                  selectedDate={selectedDate}
+                  selectedTimes={selectedTimes}
+                  onTimesChange={handleDay1TimesChange}
+                  label={formatShortDate(selectedDate)}
+                />
+              </div>
+            )}
             <TimeSlots
-              selectedDate={selectedDate}
-              selectedTimes={selectedTimes}
+              selectedDate={activeDate}
+              selectedTimes={nextDate ? nextDateTimes : selectedTimes}
               onTimesChange={handleTimesChange}
+              crossMidnightFrom={nextDate ? selectedTimes : undefined}
+              label={nextDate ? formatShortDate(nextDate) : undefined}
             />
           </div>
 
@@ -140,6 +230,8 @@ function BookingContent() {
               onBookingComplete={handleBookingComplete}
               onSuccess={toast.success}
               onError={toast.error}
+              nextDate={nextDate}
+              nextDateTimes={nextDateTimes}
             />
           </div>
         </div>

@@ -14,9 +14,11 @@ interface BookingFormProps {
   onBookingComplete: () => void
   onSuccess: (message: string) => void
   onError: (message: string) => void
+  nextDate?: string
+  nextDateTimes?: string[]
 }
 
-export default function BookingForm({ selectedDate, selectedTimes, onBookingComplete, onSuccess, onError }: BookingFormProps) {
+export default function BookingForm({ selectedDate, selectedTimes, onBookingComplete, onSuccess, onError, nextDate, nextDateTimes }: BookingFormProps) {
   const { data: session, status } = useSession()
   const { t, language } = useLanguage()
   const [loading, setLoading] = useState(false)
@@ -38,24 +40,38 @@ export default function BookingForm({ selectedDate, selectedTimes, onBookingComp
     })
   }
 
+  const isCrossMidnight = !!(nextDate && nextDateTimes && nextDateTimes.length > 0)
   const sortedTimes = [...selectedTimes].sort()
-  const numSlots = sortedTimes.length
+  const sortedNextDateTimes = isCrossMidnight ? [...nextDateTimes].sort() : []
+  const numSlots = sortedTimes.length + sortedNextDateTimes.length
   const firstTime = sortedTimes[0]
-  const lastHour = numSlots > 0 ? parseInt(sortedTimes[numSlots - 1].split(':')[0]) + 1 : 0
+  const lastSlotTimes = isCrossMidnight ? sortedNextDateTimes : sortedTimes
+  const lastHour = numSlots > 0 ? parseInt(lastSlotTimes[lastSlotTimes.length - 1].split(':')[0]) + 1 : 0
   const endTimeStr = numSlots > 0 ? `${String(lastHour).padStart(2, '0')}:00` : ''
 
-  const totalPrice = sortedTimes.reduce(
+  const day1Price = sortedTimes.reduce(
     (sum, time) => sum + getBookingPrice(selectedDate, time),
     0
   )
+  const day2Price = isCrossMidnight
+    ? sortedNextDateTimes.reduce(
+        (sum, time) => sum + getBookingPrice(nextDate!, time),
+        0
+      )
+    : 0
+  const totalPrice = day1Price + day2Price
 
-  const hasMixedPricing = numSlots > 1 && sortedTimes.some(
-    time => isPeakTime(selectedDate, time) !== isPeakTime(selectedDate, sortedTimes[0])
+  const allTimes = [
+    ...sortedTimes.map(time => ({ date: selectedDate, time })),
+    ...sortedNextDateTimes.map(time => ({ date: nextDate!, time }))
+  ]
+  const hasMixedPricing = numSlots > 1 && allTimes.some(
+    ({ date, time }) => isPeakTime(date, time) !== isPeakTime(allTimes[0].date, allTimes[0].time)
   )
-  const allPeak = numSlots > 0 && sortedTimes.every(time => isPeakTime(selectedDate, time))
+  const allPeak = numSlots > 0 && allTimes.every(({ date, time }) => isPeakTime(date, time))
 
   const handleBooking = async () => {
-    if (!selectedDate || selectedTimes.length === 0) return
+    if (!selectedDate || numSlots === 0) return
 
     setLoading(true)
 
@@ -64,13 +80,19 @@ export default function BookingForm({ selectedDate, selectedTimes, onBookingComp
     })
 
     try {
+      const checkoutBody: Record<string, unknown> = {
+        date: selectedDate,
+        startTimes: sortedTimes
+      }
+      if (isCrossMidnight) {
+        checkoutBody.nextDate = nextDate
+        checkoutBody.nextDateStartTimes = sortedNextDateTimes
+      }
+
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: selectedDate,
-          startTimes: sortedTimes
-        })
+        body: JSON.stringify(checkoutBody)
       })
 
       const data = await res.json()
@@ -106,7 +128,7 @@ export default function BookingForm({ selectedDate, selectedTimes, onBookingComp
 
   if (!session) {
     const bookCallbackUrl = selectedDate
-      ? `/book?date=${selectedDate}${selectedTimes.length > 0 ? `&times=${selectedTimes.join(',')}` : ''}`
+      ? `/book?date=${selectedDate}${selectedTimes.length > 0 ? `&times=${selectedTimes.join(',')}` : ''}${isCrossMidnight ? `&nextDate=${nextDate}&nextDateTimes=${nextDateTimes!.join(',')}` : ''}`
       : '/book'
     const encodedCallback = encodeURIComponent(bookCallbackUrl)
 
@@ -142,7 +164,7 @@ export default function BookingForm({ selectedDate, selectedTimes, onBookingComp
     )
   }
 
-  if (!selectedDate || selectedTimes.length === 0) {
+  if (!selectedDate || numSlots === 0) {
     return (
       <div className="card p-6 animate-fade-in">
         <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -174,9 +196,13 @@ export default function BookingForm({ selectedDate, selectedTimes, onBookingComp
             <Image src="/images/mjparty_logo.png" alt="麻雀Party" width={48} height={48} />
           </div>
           <div>
-            <p className="font-bold text-green-800">{formatDate(selectedDate)}</p>
+            <p className="font-bold text-green-800">
+              {isCrossMidnight
+                ? `${formatDate(selectedDate)} - ${formatDate(nextDate!)}`
+                : formatDate(selectedDate)}
+            </p>
             <p className="text-green-600">
-              {formatTime(firstTime)} - {formatTime(endTimeStr)}
+              {formatTime(firstTime)} - {formatTime(endTimeStr)}{isCrossMidnight ? ' +1' : ''}
             </p>
           </div>
         </div>

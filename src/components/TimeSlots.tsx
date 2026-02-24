@@ -8,6 +8,8 @@ interface TimeSlotsProps {
   selectedDate: string
   selectedTimes: string[]
   onTimesChange: (times: string[]) => void
+  crossMidnightFrom?: string[]
+  label?: string
 }
 
 interface Slot {
@@ -22,8 +24,19 @@ function getHour(time: string): number {
   return parseInt(time.split(':')[0])
 }
 
-function isAdjacent(times: string[], candidate: string): 'before' | 'after' | false {
-  if (times.length === 0) return false
+function isAdjacent(
+  times: string[],
+  candidate: string,
+  crossMidnightFrom?: string[]
+): 'before' | 'after' | false {
+  if (times.length === 0) {
+    // If no times selected on this day yet, check cross-midnight adjacency
+    if (crossMidnightFrom && crossMidnightFrom.includes('23:00')) {
+      const candidateHour = getHour(candidate)
+      if (candidateHour === 0) return 'after'
+    }
+    return false
+  }
   const sorted = [...times].sort()
   const firstHour = getHour(sorted[0])
   const lastHour = getHour(sorted[sorted.length - 1])
@@ -34,7 +47,7 @@ function isAdjacent(times: string[], candidate: string): 'before' | 'after' | fa
   return false
 }
 
-export default function TimeSlots({ selectedDate, selectedTimes, onTimesChange }: TimeSlotsProps) {
+export default function TimeSlots({ selectedDate, selectedTimes, onTimesChange, crossMidnightFrom, label }: TimeSlotsProps) {
   const { t } = useLanguage()
   const [slots, setSlots] = useState<Slot[]>([])
   const [loading, setLoading] = useState(false)
@@ -97,12 +110,19 @@ export default function TimeSlots({ selectedDate, selectedTimes, onTimesChange }
       return
     }
 
-    const adjacency = isAdjacent(selectedTimes, startTime)
+    const adjacency = isAdjacent(selectedTimes, startTime, crossMidnightFrom)
     if (adjacency) {
       // Extend selection
       onTimesChange([...selectedTimes, startTime])
+    } else if (crossMidnightFrom && selectedTimes.length === 0 && getHour(startTime) === 0 && crossMidnightFrom.includes('23:00')) {
+      // Cross-midnight: first selection on Day 2 at 00:00
+      onTimesChange([startTime])
     } else {
-      // Not adjacent: start new selection
+      // Not adjacent: start new selection (only if not in cross-midnight mode)
+      if (crossMidnightFrom) {
+        // In cross-midnight mode, only allow adjacent extensions from 00:00
+        return
+      }
       onTimesChange([startTime])
     }
   }
@@ -147,6 +167,7 @@ export default function TimeSlots({ selectedDate, selectedTimes, onTimesChange }
         <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
           <ClockIcon className="w-5 h-5 text-green-600" />
           {t.timeSlots.title}
+          {label && <span className="text-sm font-normal text-gray-500">({label})</span>}
         </h3>
         <span className="badge-success">
           {availableCount} {t.timeSlots.available}
