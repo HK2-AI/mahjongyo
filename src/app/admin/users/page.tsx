@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import Link from 'next/link'
 
 interface UserData {
   id: string
@@ -30,6 +31,7 @@ const membershipLabels: Record<string, string> = {
 export default function AdminUsers() {
   const [users, setUsers] = useState<UserData[]>([])
   const [loading, setLoading] = useState(true)
+  const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
@@ -39,6 +41,7 @@ export default function AdminUsers() {
       const res = await fetch(`/api/admin/users?page=${page}`)
       const data = await res.json()
       setUsers(data.users)
+      setTotal(data.total)
       setTotalPages(data.totalPages)
     } catch (err) {
       console.error('Failed to load users:', err)
@@ -53,6 +56,11 @@ export default function AdminUsers() {
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-semibold text-gray-900">用戶管理</h1>
+        <p className="text-sm text-gray-500">共 {total} 個用戶</p>
+      </div>
+
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-gray-400">載入中...</div>
@@ -61,17 +69,27 @@ export default function AdminUsers() {
         ) : (
           <div className="divide-y divide-gray-100">
             {users.map((u) => (
-              <div key={u.id} className="px-6 py-4">
+              <Link
+                key={u.id}
+                href={`/admin/users/${u.id}`}
+                className="block px-6 py-4 hover:bg-gray-50 transition-colors"
+              >
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium text-gray-900">
                       {u.name}
-                      {u.isAdmin && <span className="ml-2 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">Admin</span>}
+                      {u.isAdmin && (
+                        <span className="ml-2 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
+                          Admin
+                        </span>
+                      )}
                     </p>
                     <p className="text-sm text-gray-500">{u.email}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">{membershipLabels[u.membership] ?? u.membership}</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {membershipLabels[u.membership] ?? u.membership}
+                    </p>
                     <p className="text-xs text-gray-400">{u.bookingCount} 次預約</p>
                   </div>
                 </div>
@@ -81,7 +99,7 @@ export default function AdminUsers() {
                   <span>總消費: {formatMoney(u.totalSpent)}</span>
                   <span>註冊: {new Date(u.createdAt).toLocaleDateString('zh-HK')}</span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
@@ -91,7 +109,7 @@ export default function AdminUsers() {
       {totalPages > 1 && (
         <div className="flex justify-center gap-2">
           <button
-            onClick={() => setPage(p => Math.max(1, p - 1))}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
             className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 disabled:opacity-50 hover:bg-gray-50 transition-colors"
           >
@@ -101,8 +119,8 @@ export default function AdminUsers() {
             {page} / {totalPages}
           </span>
           <button
-            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
+            onClick={() => setPage((p) => p + 1)}
+            disabled={page >= totalPages}
             className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 disabled:opacity-50 hover:bg-gray-50 transition-colors"
           >
             下一頁
