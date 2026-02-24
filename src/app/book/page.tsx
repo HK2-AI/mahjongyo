@@ -96,8 +96,13 @@ function BookingContent() {
       return false
     }
 
-    // New date: cross-midnight bridge (Day 1 ends 23:00, new slot is 00:00 on next day)
+    // New date: forward cross-midnight (Day 1 ends 23:00, new slot is 00:00 on next day)
     if (day1Last === 23 && hour === 0 && isNextDay(selectedDate, date)) {
+      return true
+    }
+
+    // Reverse cross-midnight (Day 1 starts 00:00, new slot is 23:00 on previous day)
+    if (day1First === 0 && hour === 23 && isNextDay(date, selectedDate)) {
       return true
     }
 
@@ -110,21 +115,71 @@ function BookingContent() {
     } else if (date === nextDate) {
       setNextDateTimes(prev => [...prev, time])
     } else if (isNextDay(selectedDate, date)) {
-      // New Day 2 (cross-midnight extension)
+      // Forward cross-midnight: new Day 2
       setNextDate(date)
       setNextDateTimes([time])
+    } else if (isNextDay(date, selectedDate)) {
+      // Reverse cross-midnight: new date becomes Day 1, old Day 1 becomes Day 2
+      setNextDate(selectedDate)
+      setNextDateTimes(selectedTimes)
+      setSelectedDate(date)
+      setSelectedTimes([time])
     }
+  }
+
+  // Keep only the first consecutive run from a sorted time array
+  const trimToConsecutive = (times: string[]): string[] => {
+    if (times.length <= 1) return times
+    const sorted = [...times].sort()
+    const result = [sorted[0]]
+    for (let i = 1; i < sorted.length; i++) {
+      if (getHour(sorted[i]) === getHour(sorted[i - 1]) + 1) {
+        result.push(sorted[i])
+      } else {
+        break
+      }
+    }
+    return result
   }
 
   // Unified slot click handler — all logic lives here
   const handleSlotClick = (time: string) => {
     const date = viewingDate
 
-    // Already selected? → clear all
+    // Already selected? → remove just this slot, trim disconnected parts
     const isOnDay1 = date === selectedDate && selectedTimes.includes(time)
     const isOnDay2 = date === nextDate && nextDateTimes.includes(time)
     if (isOnDay1 || isOnDay2) {
-      clearAll()
+      let newDay1 = isOnDay1
+        ? trimToConsecutive(selectedTimes.filter(t => t !== time))
+        : [...selectedTimes]
+      let newDay2 = isOnDay2
+        ? trimToConsecutive(nextDateTimes.filter(t => t !== time))
+        : [...nextDateTimes]
+
+      // Check cross-midnight bridge still intact
+      if (newDay2.length > 0) {
+        const sortedDay1 = [...newDay1].sort()
+        const sortedDay2 = [...newDay2].sort()
+        const bridgeOk = sortedDay1.length > 0
+          && getHour(sortedDay1[sortedDay1.length - 1]) === 23
+          && getHour(sortedDay2[0]) === 0
+        if (!bridgeOk) {
+          newDay2 = []
+        }
+      }
+
+      if (newDay1.length === 0) {
+        clearAll()
+      } else {
+        setSelectedTimes(newDay1)
+        if (newDay2.length > 0) {
+          setNextDateTimes(newDay2)
+        } else if (nextDate) {
+          setNextDate('')
+          setNextDateTimes([])
+        }
+      }
       return
     }
 
