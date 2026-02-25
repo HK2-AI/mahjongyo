@@ -33,7 +33,7 @@ function LoginForm() {
 
       if (result?.error) {
         trackEvent(EventTypes.LOGIN_FAIL, { eventData: { error: result.error } })
-        toast.error(result.error)
+        toast.error(t.login.invalidCredentials)
       } else {
         // Track successful login
         trackEvent(EventTypes.LOGIN)

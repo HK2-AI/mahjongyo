@@ -163,6 +163,7 @@ export const translations = {
       noAccount: '仲未有帳戶？',
       signUp: '註冊',
       welcomeBack: '歡迎返嚟！',
+      invalidCredentials: '電郵或密碼錯誤',
     },
     // Signup page
     signup: {
@@ -442,6 +443,7 @@ export const translations = {
       noAccount: "Don't have an account?",
       signUp: 'Sign up',
       welcomeBack: 'Welcome back!',
+      invalidCredentials: 'Invalid email or password',
     },
     // Signup page
     signup: {
