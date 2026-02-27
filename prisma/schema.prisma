@@ -56,6 +56,7 @@ model Session {
   userId        String?  // Linked when user registers/logs in
   userAgent     String?
   ipAddress     String?
+  country       String?  // Country name resolved from IP via GeoLite2
   referrer      String?
   landingPage   String?
   createdAt     DateTime @default(now())

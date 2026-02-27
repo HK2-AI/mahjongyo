@@ -29,6 +29,7 @@ interface SessionData {
   visitorId: string
   userAgent: string | null
   ipAddress: string | null
+  country: string | null
   referrer: string | null
   landingPage: string | null
   createdAt: string
@@ -184,6 +185,12 @@ export default function UserDetailPage() {
                   <span className="ml-3 text-xs text-gray-400">
                     {s._count.events} 個事件
                   </span>
+                  {s.ipAddress && (
+                    <span className="ml-3 text-xs font-mono text-gray-400">
+                      {s.ipAddress}
+                      {s.country && ` (${s.country})`}
+                    </span>
+                  )}
                   {s.landingPage && (
                     <span className="ml-3 text-xs text-gray-400 truncate max-w-[200px] inline-block align-bottom">
                       {s.landingPage}

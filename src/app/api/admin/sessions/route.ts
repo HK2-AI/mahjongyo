@@ -74,6 +74,8 @@ export async function GET(request: NextRequest) {
         eventCount: s._count.events,
         duration,
         converted,
+        ipAddress: s.ipAddress,
+        country: s.country,
         landingPage: s.landingPage,
         referrer: s.referrer,
         createdAt: s.createdAt,

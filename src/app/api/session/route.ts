@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { lookupCountry } from '@/lib/geoip'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,6 +16,9 @@ export async function POST(request: NextRequest) {
     const forwardedFor = request.headers.get('x-forwarded-for')
     const ipAddress = forwardedFor ? forwardedFor.split(',')[0].trim() : null
 
+    // Resolve country from IP
+    const country = ipAddress ? await lookupCountry(ipAddress) : null
+
     // Use upsert to handle race conditions
     const session = await prisma.session.upsert({
       where: { visitorId },
@@ -25,6 +29,7 @@ export async function POST(request: NextRequest) {
         visitorId,
         userAgent,
         ipAddress,
+        country,
         referrer,
         landingPage,
       },

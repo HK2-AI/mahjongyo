@@ -19,6 +19,7 @@ interface SessionData {
   userId: string | null
   userAgent: string | null
   ipAddress: string | null
+  country: string | null
   referrer: string | null
   landingPage: string | null
   createdAt: string
@@ -117,6 +118,10 @@ export default function SessionDetailPage() {
           <div>
             <span className="text-gray-500">IP 地址：</span>
             <span className="text-gray-700">{session.ipAddress || '-'}</span>
+          </div>
+          <div>
+            <span className="text-gray-500">國家：</span>
+            <span className="text-gray-700">{session.country || '-'}</span>
           </div>
           <div>
             <span className="text-gray-500">來源：</span>
