@@ -20,10 +20,13 @@ export async function POST(request: NextRequest) {
     const country = ipAddress ? await lookupCountry(ipAddress) : null
 
     // Use upsert to handle race conditions
+    // Also backfill IP/country on revisit if missing (for old sessions)
     const session = await prisma.session.upsert({
       where: { visitorId },
       update: {
         lastActiveAt: new Date(),
+        ...(ipAddress ? { ipAddress } : {}),
+        ...(country ? { country } : {}),
       },
       create: {
         visitorId,

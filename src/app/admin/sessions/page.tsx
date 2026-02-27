@@ -58,13 +58,14 @@ export default function SessionListPage() {
         ) : (
           <>
             {/* Header */}
-            <div className="hidden sm:grid sm:grid-cols-8 gap-4 px-6 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
+            <div className="hidden sm:grid sm:grid-cols-9 gap-4 px-6 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
               <div>訪客</div>
               <div>用戶</div>
               <div className="text-center">事件數</div>
               <div className="text-center">時長</div>
               <div className="text-center">轉換</div>
-              <div>IP / 國家</div>
+              <div>IP</div>
+              <div>國家</div>
               <div>著陸頁</div>
               <div className="text-right">建立時間</div>
             </div>
@@ -73,7 +74,7 @@ export default function SessionListPage() {
                 <Link
                   key={s.visitorId}
                   href={`/admin/sessions/${s.visitorId}`}
-                  className="grid grid-cols-2 sm:grid-cols-8 gap-2 sm:gap-4 px-6 py-3 hover:bg-gray-50 transition-colors items-center"
+                  className="grid grid-cols-2 sm:grid-cols-9 gap-2 sm:gap-4 px-6 py-3 hover:bg-gray-50 transition-colors items-center"
                 >
                   <div className="font-mono text-sm text-gray-700">
                     {s.visitorId.slice(0, 8)}...
@@ -92,17 +93,11 @@ export default function SessionListPage() {
                       <span className="text-xs text-gray-400">-</span>
                     )}
                   </div>
+                  <div className="font-mono text-xs text-gray-500 truncate">
+                    {s.ipAddress || '-'}
+                  </div>
                   <div className="text-sm text-gray-500 truncate">
-                    {s.ipAddress ? (
-                      <span>
-                        <span className="font-mono text-xs">{s.ipAddress}</span>
-                        {s.country && (
-                          <span className="ml-1 text-xs text-gray-400">({s.country})</span>
-                        )}
-                      </span>
-                    ) : (
-                      '-'
-                    )}
+                    {s.country || '-'}
                   </div>
                   <div className="text-sm text-gray-500 truncate col-span-2 sm:col-span-1">
                     {s.landingPage || '-'}
